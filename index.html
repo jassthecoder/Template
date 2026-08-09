@@ -126,6 +126,9 @@
     <label for="word-size">Word size — <span id="word-size-val">64</span>px <span style="text-transform:none;letter-spacing:0;">(0 = auto-fit)</span></label>
     <input id="word-size" type="range" min="0" max="140" value="0" step="2">
 
+    <label for="meaning-size">Meaning size — <span id="meaning-size-val">52</span>px <span style="text-transform:none;letter-spacing:0;">(0 = auto-fit)</span></label>
+    <input id="meaning-size" type="range" min="0" max="140" value="0" step="2">
+
     <label for="bulk-input">Word / meaning pairs</label>
     <p class="format-example">Up
 Down
@@ -174,6 +177,8 @@ Down</textarea>
   const bulkInput = document.getElementById('bulk-input');
   const wordSizeIn = document.getElementById('word-size');
   const wordSizeVal = document.getElementById('word-size-val');
+  const meaningSizeIn = document.getElementById('meaning-size');
+  const meaningSizeVal = document.getElementById('meaning-size-val');
 
   const pLabelTop = document.getElementById('p-label-top');
   const pLabelBottom = document.getElementById('p-label-bottom');
@@ -196,6 +201,13 @@ Down</textarea>
   });
   wordSizeVal.textContent = 'auto';
 
+  meaningSizeIn.addEventListener('input', () => {
+    meaningSizeVal.textContent = meaningSizeIn.value === '0' ? 'auto' : meaningSizeIn.value;
+    syncPreview();
+    regenerate();
+  });
+  meaningSizeVal.textContent = 'auto';
+
   function fitSize(el, text, base, mid, small){
     const len = (text || '').length;
     let size = base;
@@ -211,6 +223,16 @@ Down</textarea>
       el.style.fontSize = manual + 'px';
     } else {
       fitSize(el, text, 64, 48, 36);
+    }
+  }
+
+  // Applies the manual meaning-size override when set, else falls back to auto-fit.
+  function setMeaningSize(el, text){
+    const manual = parseInt(meaningSizeIn.value, 10);
+    if(manual > 0){
+      el.style.fontSize = manual + 'px';
+    } else {
+      fitSize(el, text, 52, 40, 30);
     }
   }
 
@@ -246,7 +268,7 @@ Down</textarea>
     pWord.textContent = first.word || 'word';
     pMeaning.textContent = first.meaning || 'meaning';
     setWordSize(pWord, first.word);
-    fitSize(pMeaning, first.meaning, 52, 40, 30);
+    setMeaningSize(pMeaning, first.meaning);
   }
   [labelTopIn, labelBottomIn, bulkInput].forEach(el => el.addEventListener('input', syncPreview));
   syncPreview();
@@ -281,7 +303,7 @@ Down</textarea>
       '</div>';
 
     setWordSize(inner.querySelector('.word'), entry.word);
-    fitSize(inner.querySelector('.meaning'), entry.meaning, 52, 40, 30);
+    setMeaningSize(inner.querySelector('.meaning'), entry.meaning);
 
     thumb.appendChild(inner);
     wrap.appendChild(thumb);
