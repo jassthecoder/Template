@@ -13,6 +13,9 @@
     --reveal-bg:#20241F;
     --reveal-text:#EDE9DD;
     --line:#20241F;
+    --font-word:'Fraunces',serif;
+    --font-style:italic;
+    --font-weight:500;
   }
   *{box-sizing:border-box;}
   body{
@@ -33,11 +36,12 @@
   h1{ font-family:'Fraunces',serif; font-weight:600; font-size:26px; margin:0 0 4px; }
   .sub{ font-size:12px; color:var(--ink-soft); margin:0 0 28px; letter-spacing:.02em; }
   label{ display:block; font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-soft); margin:18px 0 6px; }
-  input,textarea{
+  input,textarea,select{
     width:100%; font-family:'Space Mono',monospace; font-size:14px; padding:9px 10px;
     background:#fff; border:1px solid #cfcabb; border-radius:2px; color:var(--ink); resize:vertical;
   }
-  input:focus,textarea:focus{ outline:none; border-color:var(--ink); }
+  input:focus,textarea:focus,select:focus{ outline:none; border-color:var(--ink); }
+  select{ appearance:none; cursor:pointer; }
   .row{display:flex;gap:10px;}
   .row > div{flex:1;}
   input[type="range"]{
@@ -86,10 +90,10 @@
     width:14px; height:14px; background:var(--paper); border:2px solid var(--line);
   }
   .eyebrow{ font-family:'Space Mono',monospace; font-size:20px; letter-spacing:.22em; text-transform:uppercase; color:var(--ink-soft); margin-bottom:28px; }
-  .word{ font-family:'Fraunces',serif; font-style:italic; font-weight:500; font-size:64px; line-height:1; word-break:break-word; }
+  .word{ font-family:var(--font-word); font-style:var(--font-style); font-weight:var(--font-weight); font-size:64px; line-height:1; word-break:break-word; }
   .bottom-half{ background:var(--reveal-bg); color:var(--reveal-text); }
   .bottom-half .eyebrow{ color:#B8B29E; }
-  .meaning{ font-family:'Fraunces',serif; font-style:italic; font-weight:500; font-size:52px; line-height:1.1; max-width:820px; word-break:break-word; }
+  .meaning{ font-family:var(--font-word); font-style:var(--font-style); font-weight:var(--font-weight); font-size:52px; line-height:1.1; max-width:820px; word-break:break-word; }
 
   .bulk-wrap{ max-width:1040px; margin:56px auto 0; border-top:1px solid #dcd7c8; padding-top:32px; }
   .bulk-wrap h2{ font-family:'Fraunces',serif; font-weight:600; font-size:20px; margin:0 0 4px; }
@@ -106,11 +110,14 @@
     width:14px; height:14px; background:var(--paper); border:2px solid var(--line);
   }
   .mini-inner .eyebrow{ font-family:'Space Mono',monospace; font-size:20px; letter-spacing:.22em; text-transform:uppercase; color:var(--ink-soft); margin-bottom:28px; }
-  .mini-inner .word{ font-family:'Fraunces',serif; font-style:italic; font-weight:500; font-size:64px; line-height:1; word-break:break-word; }
+  .mini-inner .word{ font-family:var(--font-word); font-style:var(--font-style); font-weight:var(--font-weight); font-size:64px; line-height:1; word-break:break-word; }
   .mini-inner .bottom-half{ background:var(--reveal-bg); color:var(--reveal-text); }
   .mini-inner .bottom-half .eyebrow{ color:#B8B29E; }
-  .mini-inner .meaning{ font-family:'Fraunces',serif; font-style:italic; font-weight:500; font-size:52px; line-height:1.1; max-width:820px; word-break:break-word; }
+  .mini-inner .meaning{ font-family:var(--font-word); font-style:var(--font-style); font-weight:var(--font-weight); font-size:52px; line-height:1.1; max-width:820px; word-break:break-word; }
   .thumb-label{ font-family:'Space Mono',monospace; font-size:11px; color:var(--ink-soft); margin-top:8px; text-align:center; }
+
+  .save-row{ display:flex; gap:10px; flex-wrap:wrap; }
+  .save-row button{ flex:1; }
 </style>
 </head>
 <body>
@@ -125,6 +132,16 @@
     <label for="label-bottom">Bottom label (optional)</label>
     <input id="label-bottom" value="">
 
+    <label for="font-family">Font family (word / meaning)</label>
+    <select id="font-family">
+      <option value="fraunces" selected>Fraunces (default, serif italic)</option>
+      <option value="georgia">Georgia</option>
+      <option value="helvetica">Helvetica</option>
+      <option value="times">Times New Roman</option>
+      <option value="grotesque">Classic Grotesque Pro Semi Bold</option>
+    </select>
+    <p class="hint" id="font-hint" style="display:none;">Classic Grotesque Pro is a licensed font — it isn't available over the web, so this will only render correctly if it's already installed on your device. Otherwise it falls back to a similar system sans-serif.</p>
+
     <label for="split">Divider position — <span id="split-val">50</span>% down</label>
     <input id="split" type="range" min="20" max="80" value="50" step="1">
 
@@ -134,7 +151,7 @@
     <label for="meaning-size">Meaning size — <span id="meaning-size-val">auto</span>px <span style="text-transform:none;letter-spacing:0;">(0 = auto-fit)</span></label>
     <input id="meaning-size" type="range" min="0" max="220" value="0" step="2">
 
-    <label for="jpg-quality">Instagram JPEG quality — <span id="jpg-quality-val">92</span></label>
+    <label for="jpg-quality">JPEG quality — <span id="jpg-quality-val">92</span></label>
     <input id="jpg-quality" type="range" min="80" max="100" value="92" step="1">
 
     <label for="bulk-input">Word / meaning pairs</label>
@@ -150,8 +167,9 @@ Cold</p>
 Down</textarea>
 
     <button id="bulk-generate">Generate cards</button>
-    <button id="bulk-download" disabled>Download all (zip: PNG masters + Instagram JPEGs)</button>
-    <p class="hint">Each pair is two lines: the word, then its match, separated by a blank line. First pair also previews live on the right. Master canvas is 1080×1350px (4:5) sRGB. The zip contains a full-resolution PNG master and a separately-encoded 1080×1350 Instagram-ready JPEG (8-bit sRGB, no re-compression) for every card.</p>
+    <button id="bulk-save" disabled>Save all to Photos</button>
+    <button id="bulk-download-fallback" disabled>Download all (zip of JPEGs)</button>
+    <p class="hint">Each pair is two lines: the word, then its match, separated by a blank line. First pair also previews live on the right. Cards export as 1080×1350px (4:5) JPEGs. "Save all to Photos" opens the iPhone share sheet — tap "Save Images" to add every card straight to your camera roll in one tap. If your browser doesn't support that, use the zip download instead.</p>
   </div>
 
   <div class="stage">
@@ -171,9 +189,9 @@ Down</textarea>
   </div>
 </div>
 
-<div class="single-download-row" style="max-width:1040px;margin:20px auto 0;display:flex;gap:10px;justify-content:flex-end;">
-  <button id="download-png" style="width:auto;margin-top:0;">Download master (PNG)</button>
-  <button id="download-jpg" style="width:auto;margin-top:0;">Download for Instagram (JPEG)</button>
+<div class="single-download-row save-row" style="max-width:1040px;margin:20px auto 0;justify-content:flex-end;">
+  <button id="save-single" style="width:auto;margin-top:0;flex:0;">Save to Photos</button>
+  <button id="download-jpg" style="width:auto;margin-top:0;flex:0;">Download JPEG</button>
 </div>
 
 <div class="bulk-wrap">
@@ -197,11 +215,31 @@ Down</textarea>
   const jpgQualityIn = document.getElementById('jpg-quality');
   const jpgQualityVal = document.getElementById('jpg-quality-val');
   const cardStageWrapper = document.getElementById('card-stage-wrapper');
+  const fontFamilyIn = document.getElementById('font-family');
+  const fontHint = document.getElementById('font-hint');
 
   const pLabelTop = document.getElementById('p-label-top');
   const pLabelBottom = document.getElementById('p-label-bottom');
   const pWord = document.getElementById('p-word');
   const pMeaning = document.getElementById('p-meaning');
+
+  const FONT_STACKS = {
+    fraunces:   { family: "'Fraunces',serif",                                   style:'italic', weight:'500' },
+    georgia:    { family: "Georgia, 'Times New Roman', serif",                  style:'normal', weight:'600' },
+    helvetica:  { family: "Helvetica, Arial, 'Helvetica Neue', sans-serif",     style:'normal', weight:'600' },
+    times:      { family: "'Times New Roman', Times, serif",                    style:'normal', weight:'600' },
+    grotesque:  { family: "'Classic Grotesque Pro Semi Bold', 'Classic Grotesque Pro', Helvetica, Arial, sans-serif", style:'normal', weight:'600' }
+  };
+
+  function syncFont(){
+    const choice = FONT_STACKS[fontFamilyIn.value] || FONT_STACKS.fraunces;
+    document.documentElement.style.setProperty('--font-word', choice.family);
+    document.documentElement.style.setProperty('--font-style', choice.style);
+    document.documentElement.style.setProperty('--font-weight', choice.weight);
+    fontHint.style.display = fontFamilyIn.value === 'grotesque' ? 'block' : 'none';
+  }
+  fontFamilyIn.addEventListener('change', () => { syncFont(); regenerate(); });
+  syncFont();
 
   function syncCardScale(){
     const displayWidth = cardStageWrapper.clientWidth;
@@ -276,19 +314,62 @@ Down</textarea>
     return canvas;
   }
 
-  document.getElementById('download-png').addEventListener('click', async () => {
-    const canvas = await captureFullRes(cardEl);
-    const link = document.createElement('a');
-    link.download = (document.getElementById('p-word').textContent || 'word') + '-master.png';
-    link.href = canvas.toDataURL('image/png');
-    link.click();
+  function canvasToJpegBlob(canvas, quality){
+    return new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', quality));
+  }
+
+  // Tries the native share sheet (best on iPhone: one tap → "Save Image(s)" → Photos).
+  // Falls back to a plain <a download> if Web Share with files isn't supported.
+  async function shareOrDownloadFiles(files, zipFallbackName, zipFolderFiles){
+    if(navigator.canShare && navigator.canShare({ files })){
+      try{
+        await navigator.share({ files, title: 'Word pair cards' });
+        return true;
+      }catch(err){
+        if(err && err.name === 'AbortError') return false; // user cancelled, don't fall back
+      }
+    }
+    // Fallback: single file -> direct download, multiple files -> zip
+    if(files.length === 1){
+      const link = document.createElement('a');
+      link.download = files[0].name;
+      link.href = URL.createObjectURL(files[0]);
+      link.click();
+    } else {
+      const zip = new JSZip();
+      zipFolderFiles.forEach(({ name, blob }) => zip.file(name, blob));
+      const blob = await zip.generateAsync({ type: 'blob' });
+      const link = document.createElement('a');
+      link.download = zipFallbackName;
+      link.href = URL.createObjectURL(blob);
+      link.click();
+    }
+    return true;
+  }
+
+  document.getElementById('save-single').addEventListener('click', async (e) => {
+    const btn = e.currentTarget;
+    const original = btn.textContent;
+    btn.textContent = 'Preparing...';
+    btn.disabled = true;
+    try{
+      const canvas = await captureFullRes(cardEl);
+      const quality = parseInt(jpgQualityIn.value, 10) / 100;
+      const blob = await canvasToJpegBlob(canvas, quality);
+      const name = (document.getElementById('p-word').textContent || 'word') + '.jpg';
+      const file = new File([blob], name, { type: 'image/jpeg' });
+      await shareOrDownloadFiles([file], name, [{ name, blob }]);
+    } finally {
+      btn.textContent = original;
+      btn.disabled = false;
+    }
   });
 
   document.getElementById('download-jpg').addEventListener('click', async () => {
     const canvas = await captureFullRes(cardEl);
     const quality = parseInt(jpgQualityIn.value, 10) / 100;
     const link = document.createElement('a');
-    link.download = (document.getElementById('p-word').textContent || 'word') + '-instagram.jpg';
+    link.download = (document.getElementById('p-word').textContent || 'word') + '.jpg';
     link.href = canvas.toDataURL('image/jpeg', quality);
     link.click();
   });
@@ -387,42 +468,61 @@ Down</textarea>
       grid.appendChild(card);
       generatedCards.push(card);
     });
-    document.getElementById('bulk-download').disabled = generatedCards.length === 0;
+    document.getElementById('bulk-save').disabled = generatedCards.length === 0;
+    document.getElementById('bulk-download-fallback').disabled = generatedCards.length === 0;
   }
 
   document.getElementById('bulk-generate').addEventListener('click', regenerate);
 
-  document.getElementById('bulk-download').addEventListener('click', async () => {
-    if(!generatedCards.length) return;
-    const btn = document.getElementById('bulk-download');
-    const originalText = btn.textContent;
-    btn.textContent = 'Zipping...';
-    btn.disabled = true;
-
+  async function buildAllJpegFiles(){
     const quality = parseInt(jpgQualityIn.value, 10) / 100;
-    const zip = new JSZip();
-    const pngFolder = zip.folder('master-png');
-    const jpgFolder = zip.folder('instagram-jpg');
-
+    const files = [];
+    const zipEntries = [];
     for(const wrap of generatedCards){
       const node = wrap._captureNode;
       const canvas = await captureFullRes(node);
-      const safeName = (wrap._entry.word || 'card').replace(/[^a-z0-9\-]+/gi, '_');
-
-      const pngData = canvas.toDataURL('image/png').split(',')[1];
-      pngFolder.file(safeName + '.png', pngData, { base64: true });
-
-      const jpgData = canvas.toDataURL('image/jpeg', quality).split(',')[1];
-      jpgFolder.file(safeName + '.jpg', jpgData, { base64: true });
+      const blob = await canvasToJpegBlob(canvas, quality);
+      const safeName = (wrap._entry.word || 'card').replace(/[^a-z0-9\-]+/gi, '_') + '.jpg';
+      files.push(new File([blob], safeName, { type: 'image/jpeg' }));
+      zipEntries.push({ name: safeName, blob });
     }
-    const blob = await zip.generateAsync({ type: 'blob' });
-    const link = document.createElement('a');
-    link.download = 'word-pair-cards.zip';
-    link.href = URL.createObjectURL(blob);
-    link.click();
+    return { files, zipEntries };
+  }
 
-    btn.textContent = originalText;
-    btn.disabled = false;
+  document.getElementById('bulk-save').addEventListener('click', async (e) => {
+    if(!generatedCards.length) return;
+    const btn = e.currentTarget;
+    const original = btn.textContent;
+    btn.textContent = 'Preparing...';
+    btn.disabled = true;
+    try{
+      const { files, zipEntries } = await buildAllJpegFiles();
+      await shareOrDownloadFiles(files, 'word-pair-cards.zip', zipEntries);
+    } finally {
+      btn.textContent = original;
+      btn.disabled = generatedCards.length === 0;
+    }
+  });
+
+  document.getElementById('bulk-download-fallback').addEventListener('click', async (e) => {
+    if(!generatedCards.length) return;
+    const btn = e.currentTarget;
+    const original = btn.textContent;
+    btn.textContent = 'Zipping...';
+    btn.disabled = true;
+    try{
+      const { zipEntries } = await buildAllJpegFiles();
+      const zip = new JSZip();
+      zipEntries.forEach(({ name, blob }) => zip.file(name, blob));
+      const blob = await zip.generateAsync({ type: 'blob' });
+      const link = document.createElement('a');
+      link.download = 'word-pair-cards.zip';
+      link.href = URL.createObjectURL(blob);
+      link.click();
+    } finally {
+      btn.textContent = original;
+      btn.disabled = generatedCards.length === 0;
+    }
   });
 </script>
 </body>
