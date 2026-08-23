@@ -193,8 +193,9 @@
 
     <label class="check-row" for="highlight-toggle" style="margin-top:22px;">
       <input type="checkbox" id="highlight-toggle">
-      Highlight word in &ldquo;quotes&rdquo;
+      Highlight word already in &ldquo;quotes&rdquo;
     </label>
+    <p class="hint" id="highlight-hint" style="display:none;">Put quotes around the word you want highlighted in the bottom line, e.g. <em>Their "situationship" lasted for months</em> — the quoted word gets the highlight color, the quote marks stay as normal text.</p>
     <div id="highlight-color-wrap" style="display:none;">
       <label for="highlight-color-color">Highlight color</label>
       <div class="color-field">
@@ -341,19 +342,29 @@ Down</textarea>
 
   const highlightToggle = document.getElementById('highlight-toggle');
   const highlightColorWrap = document.getElementById('highlight-color-wrap');
+  const highlightHint = document.getElementById('highlight-hint');
   highlightToggle.addEventListener('change', () => {
     highlightColorWrap.style.display = highlightToggle.checked ? 'block' : 'none';
+    highlightHint.style.display = highlightToggle.checked ? 'block' : 'none';
     syncPreview();
     regenerate();
   });
 
-  // Wraps a word in curly quotes with a highlighted background when the toggle is on.
-  function renderWordContent(word){
-    const safe = escapeHtml(word);
-    if(highlightToggle.checked){
-      return '\u201C<span class="word-highlight">' + safe + '</span>\u201D';
+  // Finds any quoted word(s) already in the text (e.g. Their "situationship" lasted...)
+  // and wraps just that word in a highlight span — the quote marks stay put, untouched.
+  function renderWordContent(text){
+    if(!highlightToggle.checked) return escapeHtml(text);
+    const re = /(["\u201C])([^"\u201D]+)(["\u201D])/g;
+    let result = '';
+    let lastIndex = 0;
+    let match;
+    while((match = re.exec(text)) !== null){
+      result += escapeHtml(text.slice(lastIndex, match.index));
+      result += match[1] + '<span class="word-highlight">' + escapeHtml(match[2]) + '</span>' + match[3];
+      lastIndex = match.index + match[0].length;
     }
-    return safe;
+    result += escapeHtml(text.slice(lastIndex));
+    return result;
   }
 
   function syncCardScale(){
@@ -518,8 +529,8 @@ Down</textarea>
     }
     const pairs = parsePairs(bulkInput.value);
     const first = pairs[0] || { word: '', meaning: '' };
-    pWord.innerHTML = renderWordContent(first.word || 'word');
-    pMeaning.textContent = first.meaning || 'meaning';
+    pWord.textContent = first.word || 'word';
+    pMeaning.innerHTML = renderWordContent(first.meaning || 'meaning');
     setWordSize(pWord, first.word);
     setMeaningSize(pMeaning, first.meaning);
   }
@@ -547,12 +558,12 @@ Down</textarea>
     inner.innerHTML =
       '<div class="half">' +
         '<div class="eyebrow">' + escapeHtml(labelTopIn.value || '') + '</div>' +
-        '<div class="word">' + renderWordContent(entry.word) + '</div>' +
+        '<div class="word">' + escapeHtml(entry.word) + '</div>' +
       '</div>' +
       '<div class="divider"></div>' +
       '<div class="half bottom-half">' +
         (labelBottomIn.value ? '<div class="eyebrow">' + escapeHtml(labelBottomIn.value) + '</div>' : '') +
-        '<div class="meaning">' + escapeHtml(entry.meaning) + '</div>' +
+        '<div class="meaning">' + renderWordContent(entry.meaning) + '</div>' +
       '</div>';
 
     setWordSize(inner.querySelector('.word'), entry.word);
