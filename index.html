@@ -16,10 +16,11 @@
     --font-word:'Fraunces',serif;
     --font-style:italic;
     --font-weight:500;
-    --top-bg:#EDE9DD;
-    --bottom-bg:#20241F;
-    --top-font:#20241F;
+    --top-bg:#F3EFE3;
+    --bottom-bg:#26312B;
+    --top-font:#000000;
     --bottom-font:#EDE9DD;
+    --highlight-color:#F5D949;
   }
   *{box-sizing:border-box;}
   body{
@@ -53,6 +54,12 @@
     width:40px; height:36px; padding:2px; flex-shrink:0; cursor:pointer;
   }
   .color-field input[type="text"]{ flex:1; text-transform:uppercase; }
+  input[type="checkbox"]{ width:auto; margin:0; accent-color:var(--ink); }
+  .check-row{ display:flex; align-items:center; gap:8px; text-transform:none; letter-spacing:0; font-size:13px; color:var(--ink); margin:18px 0 6px; cursor:pointer; }
+  .word-highlight, .mini-inner .word-highlight{
+    background:var(--highlight-color); padding:0.05em 0.28em; border-radius:4px;
+    -webkit-box-decoration-break:clone; box-decoration-break:clone;
+  }
   input[type="range"]{
     -webkit-appearance:none; appearance:none; height:2px; background:#cfcabb; padding:0; border:none; margin-top:4px;
   }
@@ -155,15 +162,15 @@
       <div>
         <label for="top-bg-color">Top background</label>
         <div class="color-field">
-          <input type="color" id="top-bg-color" value="#EDE9DD">
-          <input type="text" id="top-bg-hex" value="#EDE9DD" maxlength="7">
+          <input type="color" id="top-bg-color" value="#F3EFE3">
+          <input type="text" id="top-bg-hex" value="#F3EFE3" maxlength="7">
         </div>
       </div>
       <div>
         <label for="bottom-bg-color">Bottom background</label>
         <div class="color-field">
-          <input type="color" id="bottom-bg-color" value="#20241F">
-          <input type="text" id="bottom-bg-hex" value="#20241F" maxlength="7">
+          <input type="color" id="bottom-bg-color" value="#26312B">
+          <input type="text" id="bottom-bg-hex" value="#26312B" maxlength="7">
         </div>
       </div>
     </div>
@@ -171,8 +178,8 @@
       <div>
         <label for="top-font-color">Top font</label>
         <div class="color-field">
-          <input type="color" id="top-font-color" value="#20241F">
-          <input type="text" id="top-font-hex" value="#20241F" maxlength="7">
+          <input type="color" id="top-font-color" value="#000000">
+          <input type="text" id="top-font-hex" value="#000000" maxlength="7">
         </div>
       </div>
       <div>
@@ -181,6 +188,18 @@
           <input type="color" id="bottom-font-color" value="#EDE9DD">
           <input type="text" id="bottom-font-hex" value="#EDE9DD" maxlength="7">
         </div>
+      </div>
+    </div>
+
+    <label class="check-row" for="highlight-toggle" style="margin-top:22px;">
+      <input type="checkbox" id="highlight-toggle">
+      Highlight word in &ldquo;quotes&rdquo;
+    </label>
+    <div id="highlight-color-wrap" style="display:none;">
+      <label for="highlight-color-color">Highlight color</label>
+      <div class="color-field">
+        <input type="color" id="highlight-color-color" value="#F5D949">
+        <input type="text" id="highlight-color-hex" value="#F5D949" maxlength="7">
       </div>
     </div>
 
@@ -318,6 +337,24 @@ Down</textarea>
   wireColorControl('bottom-bg-color', 'bottom-bg-hex', '--bottom-bg');
   wireColorControl('top-font-color', 'top-font-hex', '--top-font');
   wireColorControl('bottom-font-color', 'bottom-font-hex', '--bottom-font');
+  wireColorControl('highlight-color-color', 'highlight-color-hex', '--highlight-color');
+
+  const highlightToggle = document.getElementById('highlight-toggle');
+  const highlightColorWrap = document.getElementById('highlight-color-wrap');
+  highlightToggle.addEventListener('change', () => {
+    highlightColorWrap.style.display = highlightToggle.checked ? 'block' : 'none';
+    syncPreview();
+    regenerate();
+  });
+
+  // Wraps a word in curly quotes with a highlighted background when the toggle is on.
+  function renderWordContent(word){
+    const safe = escapeHtml(word);
+    if(highlightToggle.checked){
+      return '\u201C<span class="word-highlight">' + safe + '</span>\u201D';
+    }
+    return safe;
+  }
 
   function syncCardScale(){
     const displayWidth = cardStageWrapper.clientWidth;
@@ -481,7 +518,7 @@ Down</textarea>
     }
     const pairs = parsePairs(bulkInput.value);
     const first = pairs[0] || { word: '', meaning: '' };
-    pWord.textContent = first.word || 'word';
+    pWord.innerHTML = renderWordContent(first.word || 'word');
     pMeaning.textContent = first.meaning || 'meaning';
     setWordSize(pWord, first.word);
     setMeaningSize(pMeaning, first.meaning);
@@ -510,7 +547,7 @@ Down</textarea>
     inner.innerHTML =
       '<div class="half">' +
         '<div class="eyebrow">' + escapeHtml(labelTopIn.value || '') + '</div>' +
-        '<div class="word">' + escapeHtml(entry.word) + '</div>' +
+        '<div class="word">' + renderWordContent(entry.word) + '</div>' +
       '</div>' +
       '<div class="divider"></div>' +
       '<div class="half bottom-half">' +
