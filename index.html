@@ -57,8 +57,7 @@
   input[type="checkbox"]{ width:auto; margin:0; accent-color:var(--ink); }
   .check-row{ display:flex; align-items:center; gap:8px; text-transform:none; letter-spacing:0; font-size:13px; color:var(--ink); margin:18px 0 6px; cursor:pointer; }
   .word-highlight, .mini-inner .word-highlight{
-    background:var(--highlight-color); padding:0.05em 0.28em; border-radius:4px;
-    -webkit-box-decoration-break:clone; box-decoration-break:clone;
+    color:var(--highlight-color);
   }
   input[type="range"]{
     -webkit-appearance:none; appearance:none; height:2px; background:#cfcabb; padding:0; border:none; margin-top:4px;
@@ -193,11 +192,11 @@
 
     <label class="check-row" for="highlight-toggle" style="margin-top:22px;">
       <input type="checkbox" id="highlight-toggle">
-      Highlight word already in &ldquo;quotes&rdquo;
+      Color word already in &ldquo;quotes&rdquo;
     </label>
-    <p class="hint" id="highlight-hint" style="display:none;">Put quotes around the word you want highlighted in the bottom line, e.g. <em>Their "situationship" lasted for months</em> — the quoted word gets the highlight color, the quote marks stay as normal text.</p>
+    <p class="hint" id="highlight-hint" style="display:none;">Put quotes around the word you want colored in the bottom line, e.g. <em>Their "situationship" lasted for months</em> — the quoted word's text changes to this color, the quote marks stay normal.</p>
     <div id="highlight-color-wrap" style="display:none;">
-      <label for="highlight-color-color">Highlight color</label>
+      <label for="highlight-color-color">Word color</label>
       <div class="color-field">
         <input type="color" id="highlight-color-color" value="#F5D949">
         <input type="text" id="highlight-color-hex" value="#F5D949" maxlength="7">
@@ -351,7 +350,7 @@ Down</textarea>
   });
 
   // Finds any quoted word(s) already in the text (e.g. Their "situationship" lasted...)
-  // and wraps just that word in a highlight span — the quote marks stay put, untouched.
+  // and changes just that word's text color — the quote marks stay put, untouched.
   function renderWordContent(text){
     if(!highlightToggle.checked) return escapeHtml(text);
     const re = /(["\u201C])([^"\u201D]+)(["\u201D])/g;
